@@ -8,14 +8,14 @@
 TEST(MSGPACK_OBJECT, pack_unpack_object)
 {
     msgpack11::MsgPack::object v1{
-        {static_cast<uint8_t>(0xffu), std::string{"abcd"} },
+        {static_cast<uint8_t>(0xffu), msgpack11::MsgPack::String{"abcd"} },
         {"a", static_cast<int32_t>(100)},
         {"b", static_cast<int16_t>(200)}
     };
 
     msgpack11::MsgPack packed{v1};
 
-    std::string dumped{packed.dump()};
+    msgpack11::MsgPack::String dumped{packed.dump()};
     EXPECT_EQ(static_cast<uint8_t>(dumped[0]), 0x83u);
     EXPECT_EQ(static_cast<uint8_t>(dumped[1]), 0xccu);
     EXPECT_EQ(static_cast<uint8_t>(dumped[2]), 0xffu);
@@ -37,7 +37,7 @@ TEST(MSGPACK_OBJECT, pack_unpack_object)
     EXPECT_EQ(static_cast<uint8_t>(dumped[18]), 0x00u);
     EXPECT_EQ(static_cast<uint8_t>(dumped[19]), 0xc8u);
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(dumped, err) };
     EXPECT_TRUE(parsed.is_object());
 

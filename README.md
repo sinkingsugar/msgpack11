@@ -31,7 +31,7 @@ Example
         { "key2", false },
         { "key3", MsgPack::array { 1, 2, 3 } },
     };
-    std::string msgpack_bytes = my_msgpack.dump();
+    String msgpack_bytes = my_msgpack.dump();
 
 Feature
 ===============

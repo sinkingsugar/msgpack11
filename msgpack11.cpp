@@ -10,6 +10,11 @@
 #include <functional>
 #include <stdexcept>
 
+#pragma warning(push)
+#pragma warning(disable: 4309)
+#pragma warning(disable: 4018)
+#pragma warning(disable: 4458)
+
 namespace msgpack11 {
 
 static const int max_depth = 200;
@@ -29,7 +34,7 @@ class MsgPackValue {
 public:
     virtual bool equals(const MsgPackValue * other) const = 0;
     virtual bool less(const MsgPackValue * other) const = 0;
-    virtual void dump(std::string &out) const = 0;
+    virtual void dump(MsgPack::String &out) const = 0;
     virtual MsgPack::Type type() const = 0;
     virtual double number_value() const;
     virtual float float32_value() const;
@@ -44,12 +49,12 @@ public:
     virtual uint32_t uint32_value() const;
     virtual uint64_t uint64_value() const;
     virtual bool bool_value() const;
-    virtual const std::string &string_value() const;
+    virtual const MsgPack::String &string_value() const;
     virtual const MsgPack::array &array_items() const;
     virtual const MsgPack::binary &binary_items() const;
     virtual const MsgPack &operator[](size_t i) const;
     virtual const MsgPack::object &object_items() const;
-    virtual const MsgPack &operator[](const std::string &key) const;
+    virtual const MsgPack &operator[](const MsgPack::String &key) const;
     virtual const MsgPack::extension &extension_items() const;
     virtual ~MsgPackValue() {}
 };
@@ -74,7 +79,7 @@ struct EndianConverter {
 };
 
 template< typename T >
-void dump_data(T value, std::string &out)
+void dump_data(T value, MsgPack::String &out)
 {
     EndianConverter<T> converter;
     converter.value.packed = value;
@@ -93,21 +98,21 @@ void dump_data(T value, std::string &out)
     }
 }
 
-static void dump(std::nullptr_t, std::string &out) {
+static void dump(std::nullptr_t, MsgPack::String &out) {
     out.push_back(0xc0);
 }
 
-static void dump(float value, std::string &out) {
+static void dump(float value, MsgPack::String &out) {
     out.push_back(0xca);
     dump_data(value, out);
 }
 
-static void dump(double value, std::string &out) {
+static void dump(double value, MsgPack::String &out) {
     out.push_back(0xcb);
     dump_data(value, out);
 }
 
-static void dump(int8_t value, std::string &out) {
+static void dump(int8_t value, MsgPack::String &out) {
     if( value < -32 )
     {
         out.push_back(0xd0);
@@ -115,22 +120,22 @@ static void dump(int8_t value, std::string &out) {
     out.push_back(value);
 }
 
-static void dump(int16_t value, std::string &out) {
+static void dump(int16_t value, MsgPack::String &out) {
     out.push_back(0xd1);
     dump_data(value, out);
 }
 
-static void dump(int32_t value, std::string &out) {
+static void dump(int32_t value, MsgPack::String &out) {
     out.push_back(0xd2);
     dump_data(value, out);
 }
 
-static void dump(int64_t value, std::string &out) {
+static void dump(int64_t value, MsgPack::String &out) {
     out.push_back(0xd3);
     dump_data(value, out);
 }
 
-static void dump(uint8_t value, std::string &out) {
+static void dump(uint8_t value, MsgPack::String &out) {
     if(128 <= value)
     {
         out.push_back(0xcc);
@@ -138,27 +143,27 @@ static void dump(uint8_t value, std::string &out) {
     out.push_back(value);
 }
 
-static void dump(uint16_t value, std::string &out) {
+static void dump(uint16_t value, MsgPack::String &out) {
     out.push_back(0xcd);
     dump_data(value, out);
 }
 
-static void dump(uint32_t value, std::string &out) {
+static void dump(uint32_t value, MsgPack::String &out) {
     out.push_back(0xce);
     dump_data(value, out);
 }
 
-static void dump(uint64_t value, std::string &out) {
+static void dump(uint64_t value, MsgPack::String &out) {
     out.push_back(0xcf);
     dump_data(value, out);
 }
 
-static void dump(bool value, std::string &out) {
+static void dump(bool value, MsgPack::String &out) {
     const uint8_t msgpack_value = (value) ? 0xc3 : 0xc2;
     out.push_back(msgpack_value);
 }
 
-static void dump(const std::string& value, std::string &out) {
+static void dump(const MsgPack::String& value, MsgPack::String &out) {
     size_t const len = value.size();
     if(len <= 0x1f)
     {
@@ -193,7 +198,7 @@ static void dump(const std::string& value, std::string &out) {
     });
 }
 
-static void dump(const MsgPack::array& value, std::string &out) {
+static void dump(const MsgPack::array& value, MsgPack::String &out) {
     size_t const len = value.size();
     if(len <= 15)
     {
@@ -222,7 +227,7 @@ static void dump(const MsgPack::array& value, std::string &out) {
     });
 }
 
-static void dump(const MsgPack::object& value, std::string &out) {
+static void dump(const MsgPack::object& value, MsgPack::String &out) {
     size_t const len = value.size();
     if(len <= 15)
     {
@@ -252,7 +257,7 @@ static void dump(const MsgPack::object& value, std::string &out) {
     });
 }
 
-static void dump(const MsgPack::binary& value, std::string &out) {
+static void dump(const MsgPack::binary& value, MsgPack::String &out) {
     size_t const len = value.size();
     if(len <= 0xff)
     {
@@ -282,7 +287,7 @@ static void dump(const MsgPack::binary& value, std::string &out) {
     });
 }
 
-static void dump(const MsgPack::extension& value, std::string &out) {
+static void dump(const MsgPack::extension& value, MsgPack::String &out) {
     const uint8_t type = std::get<0>( value );
     const MsgPack::binary& data = std::get<1>( value );
     const size_t len = data.size();
@@ -328,7 +333,7 @@ static void dump(const MsgPack::extension& value, std::string &out) {
 }
 }
 
-void MsgPack::dump(std::string &out) const {
+void MsgPack::dump(MsgPack::String &out) const {
     m_ptr->dump(out);
 }
 
@@ -361,7 +366,7 @@ protected:
     }
 
     const T m_value;
-    void dump(std::string &out) const override { msgpack11::dump(m_value, out); }
+    void dump(MsgPack::String &out) const override { msgpack11::dump(m_value, out); }
 };
 
 bool equal_uint64_int64( uint64_t uint64_value, int64_t int64_value )
@@ -631,8 +636,8 @@ struct Statics {
     const std::shared_ptr<MsgPackValue> t = make_shared<MsgPackBoolean>(true);
     const std::shared_ptr<MsgPackValue> f = make_shared<MsgPackBoolean>(false);
     const string empty_string;
-    const vector<MsgPack> empty_vector;
-    const map<MsgPack, MsgPack> empty_map;
+    const vector<MsgPack, MSGPACK_ALLOCATOR> empty_vector;
+    const map<MsgPack, MsgPack, MSGPACK_ALLOCATOR> empty_map;
     const MsgPack::binary empty_binary;
     const MsgPack::extension empty_extension;
     Statics() {}
@@ -697,10 +702,10 @@ uint32_t MsgPack::uint32_value()                        const { return m_ptr->ui
 uint64_t MsgPack::uint64_value()                        const { return m_ptr->uint64_value(); }
 bool MsgPack::bool_value()                              const { return m_ptr->bool_value(); }
 const string & MsgPack::string_value()                  const { return m_ptr->string_value(); }
-const vector<MsgPack>& MsgPack::array_items()           const { return m_ptr->array_items(); }
+const vector<MsgPack, MSGPACK_ALLOCATOR>& MsgPack::array_items()           const { return m_ptr->array_items(); }
 const MsgPack::binary& MsgPack::binary_items()          const { return m_ptr->binary_items(); }
 const MsgPack::extension& MsgPack::extension_items()    const { return m_ptr->extension_items(); }
-const map<MsgPack, MsgPack> & MsgPack::object_items()   const { return m_ptr->object_items(); }
+const map<MsgPack, MsgPack, MSGPACK_ALLOCATOR> & MsgPack::object_items()   const { return m_ptr->object_items(); }
 const MsgPack & MsgPack::operator[] (size_t i)          const { return (*m_ptr)[i]; }
 const MsgPack & MsgPack::operator[] (const string &key) const { return (*m_ptr)[key]; }
 
@@ -718,8 +723,8 @@ uint32_t                      MsgPackValue::uint32_value()              const { 
 uint64_t                      MsgPackValue::uint64_value()              const { return 0; }
 bool                          MsgPackValue::bool_value()                const { return false; }
 const string &                MsgPackValue::string_value()              const { return statics().empty_string; }
-const vector<MsgPack> &       MsgPackValue::array_items()               const { return statics().empty_vector; }
-const map<MsgPack, MsgPack> & MsgPackValue::object_items()              const { return statics().empty_map; }
+const vector<MsgPack, MSGPACK_ALLOCATOR> &       MsgPackValue::array_items()               const { return statics().empty_vector; }
+const map<MsgPack, MsgPack, MSGPACK_ALLOCATOR> & MsgPackValue::object_items()              const { return statics().empty_map; }
 const MsgPack::binary & MsgPackValue::binary_items()                    const { return statics().empty_binary; }
 const MsgPack::extension & MsgPackValue::extension_items()              const { return statics().empty_extension; }
 const MsgPack &               MsgPackValue::operator[] (size_t)         const { return static_null(); }
@@ -755,7 +760,7 @@ struct MsgPackParser final {
 
     /* State
      */
-    const std::string &buffer;
+    const MsgPack::String &buffer;
     size_t i;
     string &err;
     bool failed;
@@ -822,14 +827,14 @@ struct MsgPackParser final {
     }
 
     template< typename T >
-    std::string parse_string_impl(uint8_t, T bytes) {
-        std::string res(&(buffer[i]), &(buffer[i+bytes]));
+    MsgPack::String parse_string_impl(uint8_t, T bytes) {
+        MsgPack::String res(&(buffer[i]), &(buffer[i+bytes]));
         i += bytes;
         return res;
     }
 
     template< typename T >
-    std::string parse_string(uint8_t first_byte) {
+    MsgPack::String parse_string(uint8_t first_byte) {
         T const bytes = parse_arith<T>();
         return parse_string_impl<T>(first_byte, bytes);
     }
@@ -907,7 +912,7 @@ struct MsgPackParser final {
         return parse_array_impl<uint8_t>(bytes);
     }
 
-    std::string parse_fixstring(uint8_t first_byte) {
+    MsgPack::String parse_fixstring(uint8_t first_byte) {
         uint8_t const bytes = first_byte & 0x1f;
         return parse_string_impl<uint8_t>(first_byte, bytes);
     }
@@ -994,7 +999,7 @@ const std::vector< MsgPackParser::parser_element_type > MsgPackParser::parsers {
 
 }//namespace {
 
-MsgPack MsgPack::parse(const std::string &in, string &err) {
+MsgPack MsgPack::parse(const MsgPack::String &in, string &err) {
     MsgPackParser parser { in, 0, err, false };
     MsgPack result = parser.parse_msgpack(0);
 
@@ -1003,7 +1008,7 @@ MsgPack MsgPack::parse(const std::string &in, string &err) {
 
 // Documented in msgpack.hpp
 vector<MsgPack> MsgPack::parse_multi(const string &in,
-                                     std::string::size_type &parser_stop_pos,
+                                     MsgPack::String::size_type &parser_stop_pos,
                                      string &err) {
     MsgPackParser parser { in, 0, err, false };
     parser_stop_pos = 0;
@@ -1037,3 +1042,5 @@ bool MsgPack::has_shape(const shape & types, string & err) const {
 }
 
 } // namespace msgpack11
+
+#pragma warning(pop)

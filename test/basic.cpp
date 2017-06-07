@@ -39,7 +39,7 @@ const double kEPS = 1e-10;
         for (unsigned int i = 0; i < v.size() ; i++) {                                  \
             test_type val1 = v[i];                                                      \
             msgpack11::MsgPack packed{val1};                                            \
-            std::string err;                                                            \
+            msgpack11::MsgPack::String err;                                                            \
             msgpack11::MsgPack parsed = msgpack11::MsgPack::parse(packed.dump(), err ); \
             EXPECT_EQ(val1, parsed.get_value_func());                                   \
         }                                                                               \
@@ -115,7 +115,7 @@ TEST(MSGPACK, simple_buffer_float)
     for (unsigned int i = 0; i < v.size() ; i++) {
         float val1 = v[i];
         msgpack11::MsgPack packed{val1};
-        std::string err;
+        msgpack11::MsgPack::String err;
         msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
         float val2 = parsed.float32_value();
 
@@ -168,7 +168,7 @@ TYPED_TEST_P(IntegerToFloatingPointTest, simple_buffer)
     for (unsigned int i = 0; i < v.size() ; i++) {
         integer_type val1 = v[i];
         msgpack11::MsgPack packed(val1);
-        std::string err;
+        msgpack11::MsgPack::String err;
         msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
         float_type val2 = (parsed.*ValueTypeTraits<float_type>::value)();
         EXPECT_TRUE(fabs(val2 - val1) <= kEPS);
@@ -220,7 +220,7 @@ TEST(MSGPACK, simple_buffer_double)
     for (unsigned int i = 0; i < v.size() ; i++) {
         double val1 = v[i];
         msgpack11::MsgPack packed{val1};
-        std::string err;
+        msgpack11::MsgPack::String err;
         msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
         double val2 = parsed.float64_value();
 
@@ -238,7 +238,7 @@ TEST(MSGPACK, simple_buffer_double)
 TEST(MSGPACK, simple_buffer_nil)
 {
     msgpack11::MsgPack packed{nullptr};
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     EXPECT_EQ(parsed.type(), msgpack11::MsgPack::Type::NUL);
 }
@@ -247,7 +247,7 @@ TEST(MSGPACK, simple_buffer_true)
 {
     bool val1 = true;
     msgpack11::MsgPack packed{val1};
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     bool val2 = parsed.bool_value();
     EXPECT_EQ(val1, val2);
@@ -257,7 +257,7 @@ TEST(MSGPACK, simple_buffer_false)
 {
     bool val1 = false;
     msgpack11::MsgPack packed{val1};
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     bool val2 = parsed.bool_value();
     EXPECT_EQ(val1, val2);
@@ -268,7 +268,7 @@ TEST(MSGPACK, simple_buffer_fixext1)
     msgpack11::MsgPack::binary data{2};
     uint8_t type = 1;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
 
     EXPECT_EQ(data.size(), std::get<1>(parsed.extension_items()).size());
@@ -282,7 +282,7 @@ TEST(MSGPACK, simple_buffer_fixext2)
     const uint8_t type = 0;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -298,7 +298,7 @@ TEST(MSGPACK, simple_buffer_fixext4)
     const uint8_t type = 1;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -314,7 +314,7 @@ TEST(MSGPACK, simple_buffer_fixext8)
     const uint8_t type = 1;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -330,7 +330,7 @@ TEST(MSGPACK, simple_buffer_fixext16)
     const uint8_t type = 1;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -346,7 +346,7 @@ TEST(MSGPACK, simple_buffer_fixext_1byte_0)
     const uint8_t type = 77;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -363,7 +363,7 @@ TEST(MSGPACK, simple_buffer_fixext_1byte_255)
     const uint8_t type = 77;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -380,7 +380,7 @@ TEST(MSGPACK, simple_buffer_fixext_2byte_256)
     const uint8_t type = 77;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -397,7 +397,7 @@ TEST(MSGPACK, simple_buffer_fixext_2byte_65535)
     const uint8_t type = 77;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -414,7 +414,7 @@ TEST(MSGPACK, simple_buffer_fixext_4byte_65536)
     const uint8_t type = 77;
     msgpack11::MsgPack packed{ std::make_tuple(type, data) };
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
     const uint8_t parsed_type = std::get<0>( parsed.extension_items() );
     const msgpack11::MsgPack::binary& parsed_data = std::get<1>( parsed.extension_items() );
@@ -432,7 +432,7 @@ TEST(MSGPACK_STL, simple_buffer_string)
             val1 += 'a' + rand() % 26;
         msgpack11::MsgPack packed{val1};
 
-        std::string err;
+        msgpack11::MsgPack::String err;
         msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
 
         EXPECT_EQ(parsed.type(), msgpack11::MsgPack::Type::STRING);
@@ -450,7 +450,7 @@ TEST(MSGPACK_STL, simple_buffer_cstring)
             val1 += 'a' + rand() % 26;
         msgpack11::MsgPack packed{val1.c_str()};
 
-        std::string err;
+        msgpack11::MsgPack::String err;
         msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
 
         EXPECT_EQ(parsed.type(), msgpack11::MsgPack::Type::STRING);
@@ -473,7 +473,7 @@ TEST(MSGPACK_STL, simple_buffer_non_const_cstring)
         msgpack11::MsgPack packed{s};
         delete [] s;
 
-        std::string err;
+        msgpack11::MsgPack::String err;
         msgpack11::MsgPack parsed{ msgpack11::MsgPack::parse(packed.dump(), err ) };
 
         EXPECT_EQ(parsed.type(), msgpack11::MsgPack::Type::STRING);

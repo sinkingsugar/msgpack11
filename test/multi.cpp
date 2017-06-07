@@ -6,7 +6,7 @@
 TEST(MSGPACK_MULTI, pack_unpack_multi)
 {
     msgpack11::MsgPack::object v1{
-        {static_cast<uint8_t>(0xffu), std::string{"abcd"} },
+        {static_cast<uint8_t>(0xffu), msgpack11::MsgPack::String{"abcd"} },
         {"a", static_cast<int32_t>(100)},
         {"b", static_cast<int16_t>(200)}
     };
@@ -24,7 +24,7 @@ TEST(MSGPACK_MULTI, pack_unpack_multi)
     std::stringstream ss;
     ss << packed_v1.dump() << packed_v2.dump() << packed_v3.dump();
 
-    std::string err;
+    msgpack11::MsgPack::String err;
     std::vector< msgpack11::MsgPack > multi_parsed = msgpack11::MsgPack::parse_multi(ss.str(), err);
 
     EXPECT_EQ(multi_parsed.size(), 3);
